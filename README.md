@@ -82,3 +82,24 @@ hasil_evaluasi = classifier.evaluate_model()
 
 ## Kebijakan Pembuatan File `.log`
 Pada `klasifikasi.py`, sudah diatur untuk menambahkan parameter operasional argumen `system_log=False` yang ada dalam modul `setup()` milik library *pycaret*. Sehingga ketika *code running*, hal ini menjamin PyCaret tidak akan melakukan auto-output berkas logs ke dalam format ekstensi *.log* lokal yang bisa menimbulkan sampah direktori.
+
+## Pemanfaatan Artificial Intelligence (AI) Prompting
+
+Dalam pengembangan sistem Sentiment Analysis ini, kami menggunakan *Gemini 3.1 Pro (High) AI agents* sebagai asisten. Berikut adalah riwayat prompt utama yang digunakan selama proses pengembangan:
+
+### Prompt 1: Setup Lingkungan dan Struktur Dasar
+text
+step by step :
+1. periksa data terlebih dahulu file:dataset.csv (data ini berasal dari hugging face)
+2. hapus .env yang telah tersedia dan buat yang baru dengan nama .env juga dan aktifkan
+3. periksa link dokumentasi berikut terlebih dahulu -> https://pycaret.readthedocs.io/en/latest/installation.html
+4. install packages pandas, pycaret, python yang compatible dengan pycaret, re, dataset dan packages yang dibutuhkan lainnya
+5. periksa lagi dataset lagi file:dataset.csv
+6. buat file preprocessing.py dengan class berisi atribut dan method yang dapat di panggil kedepannya
+7. periksa link dokumentasi terkait klasifikasi menggunakan pycaret berikut terlebih dahulu ->https://pycaret.readthedocs.io/en/latest/api/classification.html
+8. buat file klasifikasi.py dengan class berisi atribut dan method yang dapat di panggil kedepannya
+9. buat dokumentasi README.md
+
+rules :
+1. jangan buat file .log apapun
+2. buatkan dokumentasi singkat ("""...""") di setiap fungsi yang dibuat
