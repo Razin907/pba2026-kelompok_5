@@ -103,3 +103,14 @@ step by step :
 rules :
 1. jangan buat file .log apapun
 2. buatkan dokumentasi singkat ("""...""") di setiap fungsi yang dibuat
+
+### Prompt 2: Analisis Konteks & Skema Preprocessing
+text
+lihat kembali file dataset.csv ini dan analisis preprocessing yang masih kurang dan sesuaikan dengan konteks dataset (sebagai pengetahuan dataset merupakan diambil dari hasil review sebuah produk di e commerce) , seperti :
+1. penanganan slang (perlu membaca dan analisis dataset.csv terlebih dahulu)
+2. lemmitazion
+3. stopword
+4. stemming
+
+jika, 4 proses diatas tidak di perlukan untuk konteks dataset yang ada jangan di masukkan ke dalam preprocessing
+dan perbarui README.md 
