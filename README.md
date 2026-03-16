@@ -114,3 +114,12 @@ lihat kembali file dataset.csv ini dan analisis preprocessing yang masih kurang 
 
 jika, 4 proses diatas tidak di perlukan untuk konteks dataset yang ada jangan di masukkan ke dalam preprocessing
 dan perbarui README.md 
+
+### Prompt 3: Integrasi Data Slang
+text
+1. berikut dict slang-indo.csv yang berisi 2 kolom slang dan formal yang didapatkan dari hungging face
+2. cocokkan dengan dataset.csv dan jadikan sebagai slang_dict
+
+### Prompt 4: Finalisasi Standar Reproduksi
+text
+perbarui README.md dan buat requirements.txt yang berisi setiap packages yang perlu di install oleh siapa saja yang ingin mencoba pipeline ini
