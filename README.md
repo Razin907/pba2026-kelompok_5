@@ -20,6 +20,7 @@ Sebuah virtual environment yang terisolasi digunakan untuk menjalankan skrip.
    python -m venv <nama_environment>
    ```
 3. Aktifkan virtual environment yang telah dibuat sebelumnya:
+
    windows :
    ```cmd
    .\<nama_environment>\Scripts\activate
@@ -28,7 +29,7 @@ Sebuah virtual environment yang terisolasi digunakan untuk menjalankan skrip.
    ```cmd
    source <nama_environment>/bin/activate
    ```
-4. Jika modul belum terinstal, Anda dapat menginstalnya sekaligus melalui file requirements:
+5. Jika modul belum terinstal, Anda dapat menginstalnya sekaligus melalui file requirements:
    ```cmd
    pip install -r requirements.txt
    ```
