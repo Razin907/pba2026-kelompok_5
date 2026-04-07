@@ -95,7 +95,13 @@ print(hasil)
 
 ## 🤖 Pemanfaatan AI Prompting (Asisten Pengembangan)
 
-Selama iterasi *Pair-Programming* pengembangan modul proyek ini, kami menggunakan **Gemini 3.1 Pro (High) AI agents** sebagai instrumen bantuan pembantu penyusunan kode. Berikut adalah histori *prompt* mentah (*Raw Prompts*) yang merepresentasikan arahan strategis arsitektur kami:
+Selama iterasi *Pair-Programming* pengembangan modul proyek ini, kami menggunakan **Gemini 3.1 Pro (High) AI agents** sebagai instrumen bantuan pembantu penyusunan kode.
+
+### 🛡️ Kebijakan Pembuatan File `.log`
+Pada `klasifikasi.py`, sudah diatur untuk menambahkan parameter operasional argumen `system_log=False` yang ada dalam modul `setup()` milik library *pycaret*. Sehingga ketika *code running*, hal ini menjamin PyCaret tidak akan melakukan auto-output berkas logs ke dalam format ekstensi *.log* lokal yang bisa menimbulkan sampah direktori.
+
+### 📜 Histori Prompt (Raw Prompts)
+Berikut adalah riwayat prompt utama yang digunakan selama proses pengembangan:
 
 <details>
 <summary><b>Lihat Histori Prompt di sini (Klik untuk memperluas)</b></summary>
@@ -146,3 +152,4 @@ perbarui README.md dan buat requirements.txt yang berisi setiap packages yang pe
 <div align="center">
 <i>Terima Kasih! Jika Anda bagian dari tim dan ingin berkontribusi, mohon periksa file <code>CONTRIBUTING.md</code>.</i>
 </div>
+
