@@ -18,7 +18,7 @@ Proyek ini adalah implementasi sistem **Natural Language Processing (NLP)** yang
 
 Sistem ini mengekstraksi dataset ulasan produk dari Hugging Face ([siRendy/dataset-klasifikasi-sentimen-ulasan-produk](https://huggingface.co/datasets/siRendy/dataset-klasifikasi-sentimen-ulasan-produk)) dan memprosesnya secara cepat tanpa mengonsumsi algoritma komputasi berat.
 
-### 👥 Pengembang (Tim)
+### Tim
 - **Razin Hafid Hamdi** (123450096)
 - **Ivana Margareth Hutabarat** (123410028)
 - **Hanna Gresia Sinaga** (123450038)
@@ -26,9 +26,9 @@ Sistem ini mengekstraksi dataset ulasan produk dari Hugging Face ([siRendy/datas
 
 ---
 
-## 🏗️ Arsitektur Pipeline
+## Arsitektur Pipeline
 
-Proyek ini disusun dalam pola *Object-Oriented Programming (OOP)* agar mudah digunakan ulang dan dikembangkan (Scalable).
+Proyek ini disusun dalam pola *Object-Oriented Programming (OOP)* agar mudah digunakan ulang.
 
 | Modul Utama | Tanggung Jawab (Fungsi Kelas) |
 | --- | --- |
@@ -37,12 +37,12 @@ Proyek ini disusun dalam pola *Object-Oriented Programming (OOP)* agar mudah dig
 
 ---
 
-## 🚀 Panduan Instalasi (Quick Start)
+## Panduan Instalasi
 
 Kami sangat menyarankan Anda menjalankannya pada *Virtual Environment* yang terisolasi.
 
 > [!WARNING]
-> PyCaret 3.x memiliki kompatibilitas ketat dengan iterasi dependensi di bawahnya. Anda wajib menggunakan versi **Python 3.11**. (Python 3.12+ atau 3.13+ mungkin mengalami kendala instalasi `numpy` atau `pycaret` pada sistem Windows tanpa build tools).
+> PyCaret 3.x memiliki kompatibilitas ketat dengan iterasi dependensi di bawahnya. Anda wajib menggunakan versi **Python antara 3.8 dan 3.11**. (Python 3.12+ belum mendukung versi PyCaret ini).
 
 ### 1. Buat Lingkungan Virtual (Virtual Environment)
 ```bash
@@ -51,6 +51,9 @@ py -3.11 -m venv .env
 
 # Aktivasi di Windows
 .\.env\Scripts\activate
+
+# Aktivasi di MacOS / Linux
+source .env/bin/activate
 ```
 
 ### 2. Instalasi Dependensi
@@ -61,47 +64,37 @@ pip install -r requirements.txt
 
 ---
 
-## 💻 Contoh Penggunaan API (Usage)
+## Contoh Penggunaan API (Usage)
 
-Integrasi Pipeline Preprocessing dan Training kini dapat dilakukan secara terpadu (seperti tertera pada file `main.py`):
+Integrasi Pipeline Preprocessing dan Training kini dapat dilakukan hanya dengan beberapa baris kode (seperti tertera pada file `main.py`):
 
 ```python
-from preprocessing import PreprocessingPipeline
+from Preprocessing import DataPreprocessor
 from klasifikasi import SentimentClassifier
 
-# 1. Pipeline Preprocessing & Fitur (TF-IDF)
-# Mendukung normalisasi slang otomatis via file CSV
-pipeline = PreprocessingPipeline(slang_dict='slang-indo.csv')
-df_clean = pipeline.fit_transform('dataset.csv')
+# 1. Pipeline Pembersihan Data
+preprocessor = DataPreprocessor(filepath='dataset.csv', slang_filepath='slang-indo.csv')
+df_clean = preprocessor.get_processed_data()
 
-# 2. Pipeline Machine Learning (PyCaret Wrapper)
-clf = SentimentClassifier()
+# 2. Pipeline Machine Learning
+clf = SentimentClassifier(data=df_clean, target_col='sentiment')
+clf.setup_environment(test_size=0.2)
 
-# Inisialisasi Environment (Split Train/Test)
-clf.setup(data=df_clean, train_size=0.8)
+# Opsi Cepat (Melatih spesifik model: regresi logistik)
+model_cepat = clf.train_model('lr')
 
-# Bandingkan model untuk mencari algoritma terbaik
-best_models = clf.compare(sort='Accuracy', n_select=3)
+# Opsi Auto-ML (Cari model terbaik dari seluruh algoritma)
+# best_model = clf.compare_all_models(sort='Accuracy', n_select=1)
 
-# Latih model (otomatis menggunakan hasil terbaik dari compare)
-clf.train("auto")
-
-# 3. Evaluasi Akhir
-hasil = clf.score()
-print(hasil)
+# 3. Evaluasi
+clf.evaluate_model()
 ```
 
 ---
 
 ## 🤖 Pemanfaatan AI Prompting (Asisten Pengembangan)
 
-Selama iterasi *Pair-Programming* pengembangan modul proyek ini, kami menggunakan **Gemini 3.1 Pro (High) AI agents** sebagai instrumen bantuan pembantu penyusunan kode.
-
-### 🛡️ Kebijakan Pembuatan File `.log`
-Pada `klasifikasi.py`, sudah diatur untuk menambahkan parameter operasional argumen `system_log=False` yang ada dalam modul `setup()` milik library *pycaret*. Sehingga ketika *code running*, hal ini menjamin PyCaret tidak akan melakukan auto-output berkas logs ke dalam format ekstensi *.log* lokal yang bisa menimbulkan sampah direktori.
-
-### 📜 Histori Prompt (Raw Prompts)
-Berikut adalah riwayat prompt utama yang digunakan selama proses pengembangan:
+Selama iterasi *Pair-Programming* pengembangan modul proyek ini, kami menggunakan **Gemini 3.1 Pro (High) AI agents** sebagai instrumen bantuan pembantu penyusunan kode. Berikut adalah histori *prompt* mentah (*Raw Prompts*) yang merepresentasikan arahan strategis arsitektur kami:
 
 <details>
 <summary><b>Lihat Histori Prompt di sini (Klik untuk memperluas)</b></summary>
@@ -150,6 +143,4 @@ perbarui README.md dan buat requirements.txt yang berisi setiap packages yang pe
 
 ---
 <div align="center">
-<i>Terima Kasih! Jika Anda bagian dari tim dan ingin berkontribusi, mohon periksa file <code>CONTRIBUTING.md</code>.</i>
 </div>
-
