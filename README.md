@@ -1,84 +1,148 @@
-# Sentiment Analysis Menggunakan Library PyCaret
+<div align="center">
 
-Team :
-- Razin Hafid Hamdi (123450096)
-- Ivana Margareth Hutabarat (123410028)
-- Hanna Gresia Sinaga (123450038)
+# 📊 E-Commerce Sentiment Analysis Pipeline
+**Sistem Klasifikasi Teks Berbasis Machine Learning dengan PyCaret**
 
-Project ini adalah implementasi sistem pemrosesan dan pemodelan machine learning dalam analisis teks (Sentiment Analysis) yang berbasis pada library Python `pandas` dan `pycaret`. Ekstraksi data berfokus pada dataset lokal (`dataset.csv`) yang diadaptasi dari Hugging Face [dataset-klasifikasi-sentimen-ulasan-produk](https://huggingface.co/datasets/siRendy/dataset-klasifikasi-sentimen-ulasan-produk).
+[![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
+[![PyCaret](https://img.shields.io/badge/PyCaret-3.3.2-orange.svg)](https://pycaret.org/)
+[![Pandas](https://img.shields.io/badge/pandas-data_manipulation-yellow.svg)](https://pandas.pydata.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-## Prasyarat dan Instalasi Lingkungan Virtual (`.env`)
+</div>
+
+---
+
+## 🎯 Tentang Proyek
+
+Proyek ini adalah implementasi sistem **Natural Language Processing (NLP)** yang dirancang khusus untuk menganalisis sentimen pengguna (Ulasan e-Commerce). Pipeline ini mengotomatiskan serangkaian proses mulai dari *Data Preprocessing* tingkat lanjut hingga *Model Training & Evaluation* menggunakan ekosistem terpadu **PyCaret 3.x**.
+
+Sistem ini mengekstraksi dataset ulasan produk dari Hugging Face ([siRendy/dataset-klasifikasi-sentimen-ulasan-produk](https://huggingface.co/datasets/siRendy/dataset-klasifikasi-sentimen-ulasan-produk)) dan memprosesnya secara cepat tanpa mengonsumsi algoritma komputasi berat.
+
+### 👥 Pengembang (Tim)
+- **Razin Hafid Hamdi** (123450096)
+- **Ivana Margareth Hutabarat** (123410028)
+- **Hanna Gresia Sinaga** (123450038)
+
+
+---
+
+## 🏗️ Arsitektur Pipeline
+
+Proyek ini disusun dalam pola *Object-Oriented Programming (OOP)* agar mudah digunakan ulang dan dikembangkan (Scalable).
+
+| Modul Utama | Tanggung Jawab (Fungsi Kelas) |
+| --- | --- |
+| 🧹 `preprocessing.py` | Berisi kelas `PreprocessingPipeline`. Mengelola pembersihan teks (*TextPreprocessor*), normalisasi slang Indonesia via `slang-indo.csv`, dan ekstraksi fitur berbasis `TFIDFVectorizer` (N-gram support). |
+| 🧠 `klasifikasi.py` | Berisi kelas `SentimentClassifier`. Bertindak sebagai _Wrapper_ library PyCaret. Bertanggung jawab mengatur `setup()` environment, perbandingan model (`compare`), training (`train`), dan evaluasi metrik (`score`). |
+
+---
+
+## 🚀 Panduan Instalasi (Quick Start)
+
+Kami sangat menyarankan Anda menjalankannya pada *Virtual Environment* yang terisolasi.
 
 > [!WARNING]
-> **Kompatibilitas Versi Python**: PyCaret 3.x memiliki kapabilitas dependensi ketat (khususnya dengan algoritma yang mengandalkan NumPy versi lama). Pastikan versi Python yang Anda instal di sistem/lingkungan virtual adalah di antara **Python 3.8 hingga Python 3.11**. (Python 3.12/3.13 ke atas dapat menyebabkan error saat instalasi/import library ini). 
+> PyCaret 3.x memiliki kompatibilitas ketat dengan iterasi dependensi di bawahnya. Anda wajib menggunakan versi **Python 3.11**. (Python 3.12+ atau 3.13+ mungkin mengalami kendala instalasi `numpy` atau `pycaret` pada sistem Windows tanpa build tools).
 
-Sebuah virtual environment yang terisolasi digunakan untuk menjalankan skrip.
+### 1. Buat Lingkungan Virtual (Virtual Environment)
+```bash
+# Membuat environment dengan Python 3.11
+py -3.11 -m venv .env
 
-1. Buat direktori kerja atau pergi ke direktori kerja yang sudah ada.
-2. buat environment terlebih dahulu (jika belum ada):
-   ```cmd
-   python -m venv <nama_environment>
-   ```
-3. Aktifkan virtual environment yang telah dibuat sebelumnya:
-
-   windows :
-   ```cmd
-   .\<nama_environment>\Scripts\activate
-   ```
-   linux/mac :
-   ```cmd
-   source <nama_environment>/bin/activate
-   ```
-5. Jika modul belum terinstal, Anda dapat menginstalnya sekaligus melalui file requirements:
-   ```cmd
-   pip install -r requirements.txt
-   ```
-
-## Struktur File Utama
-
-- **`preprocessing.py`**: Mengandung kelas `DataPreprocessor` guna meload `dataset.csv` menggunakan pandas. Termasuk metode pembersihan/pre-processing teks, regex pembuangan link/url, tanda baca, standarisasi lowercase. Selain itu, ditambahkan **penanganan kata slang** menggunakan *dictionary mapping* dan **penghapusan stopwords** (bahasa Indonesia `nltk`, namun dengan pengecualian kata-kata negasi `tidak, jangan, bukan` agar makna sentimen tetap terjaga). Lemmatization dan Stemming ditiadakan melalui justifikasi performa (algoritma Sastrawi memerlukan komputasi yang sangat lama. Sekitar ~2 jam komputasi untuk dataset 19k baris ini), dan karena slang normalization seringkali memberikan performa yang cukup baik.
-
-- **`klasifikasi.py`**: Mengandung kelas `SentimentClassifier` di mana PyCaret 3.x Environment diinisialisasi. Semua konfigurasi ML diatur disini. Termasuk train, test, juga compare models.
-
-## Cara Penggunaan Class / API
-
-### Preprocessing Datasets
-Bisa digunakan sebagai modul (import):
-```python
-from Preprocessing import DataPreprocessor
-
-# Deklarasi Object (Secara otomatis akan meload file slang-indo.csv jika ada)
-preprocessor = DataPreprocessor(filepath='dataset.csv', slang_filepath='slang-indo.csv')
-
-# Load, Bersihkan Teks, dan Kembalikan Bentuk DataFrame
-df_clean = preprocessor.get_processed_data()
-print(df_clean.head())
+# Aktivasi di Windows
+.\.env\Scripts\activate
 ```
 
-### Melatih Klasifikasi dan Evaluasi
-Selanjutnya operasikan object dari Class *Classifier*:
+### 2. Instalasi Dependensi
+Jalankan perintah ini untuk memasang instalasi `pandas`, `pycaret`, `scikit-learn`, dan lainnya:
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## 💻 Contoh Penggunaan API (Usage)
+
+Integrasi Pipeline Preprocessing dan Training kini dapat dilakukan secara terpadu (seperti tertera pada file `main.py`):
+
 ```python
+from preprocessing import PreprocessingPipeline
 from klasifikasi import SentimentClassifier
 
-# Asumsi dataset kita adalah target `sentiment`
-classifier = SentimentClassifier(data=df_clean, target_col='sentiment')
+# 1. Pipeline Preprocessing & Fitur (TF-IDF)
+# Mendukung normalisasi slang otomatis via file CSV
+pipeline = PreprocessingPipeline(slang_dict='slang-indo.csv')
+df_clean = pipeline.fit_transform('dataset.csv')
 
-# Inisialisasi Environment Machine Learning (Validation 20%)
-classifier.setup_environment(test_size=0.2)
+# 2. Pipeline Machine Learning (PyCaret Wrapper)
+clf = SentimentClassifier()
 
-# Opsi 1: Train sebuah model (Misalnya Naive Bayes)
-model_nb = classifier.train_model('nb')
+# Inisialisasi Environment (Split Train/Test)
+clf.setup(data=df_clean, train_size=0.8)
 
-# Opsi 2: Mencari otomatis seluruh model algoritma membandingkan Accuration Value
-# model_terbaik = classifier.compare_all_models(sort='Accuracy', n_select=1)
+# Bandingkan model untuk mencari algoritma terbaik
+best_models = clf.compare(sort='Accuracy', n_select=3)
 
-# Lakukan Evaluasi Matrix (Prediksikan ke data testing/hold-out)
-hasil_evaluasi = classifier.evaluate_model()
+# Latih model (otomatis menggunakan hasil terbaik dari compare)
+clf.train("auto")
 
-# Jika punya dataframe tak berlabel baru
-# data_tak_berlabel = ...
-# hasil_akhir = classifier.predict(data_tak_berlabel)
+# 3. Evaluasi Akhir
+hasil = clf.score()
+print(hasil)
 ```
 
-## Kebijakan Pembuatan File `.log`
-Pada `klasifikasi.py`, sudah diatur untuk menambahkan parameter operasional argumen `system_log=False` yang ada dalam modul `setup()` milik library *pycaret*. Sehingga ketika *code running*, hal ini menjamin PyCaret tidak akan melakukan auto-output berkas logs ke dalam format ekstensi *.log* lokal yang bisa menimbulkan sampah direktori.
+---
+
+## 🤖 Pemanfaatan AI Prompting (Asisten Pengembangan)
+
+Selama iterasi *Pair-Programming* pengembangan modul proyek ini, kami menggunakan **Gemini 3.1 Pro (High) AI agents** sebagai instrumen bantuan pembantu penyusunan kode. Berikut adalah histori *prompt* mentah (*Raw Prompts*) yang merepresentasikan arahan strategis arsitektur kami:
+
+<details>
+<summary><b>Lihat Histori Prompt di sini (Klik untuk memperluas)</b></summary>
+<br>
+
+**1. Setup Lingkungan dan Struktur Dasar**
+```text
+step by step :
+1. periksa data terlebih dahulu file:dataset.csv (data ini berasal dari hugging face)
+2. hapus .env yang telah tersedia dan buat yang baru dengan nama .env juga dan aktifkan
+3. periksa link dokumentasi berikut terlebih dahulu -> https://pycaret.readthedocs.io/en/latest/installation.html
+4. install packages pandas, pycaret, python yang compatible dengan pycaret, re, dataset dan packages yang dibutuhkan lainnya
+5. periksa lagi dataset lagi file:dataset.csv
+6. buat file preprocessing.py dengan class berisi atribut dan method yang dapat di panggil kedepannya
+7. periksa link dokumentasi terkait klasifikasi menggunakan pycaret berikut terlebih dahulu ->https://pycaret.readthedocs.io/en/latest/api/classification.html
+8. buat file klasifikasi.py dengan class berisi atribut dan method yang dapat di panggil kedepannya
+9. buat dokumentasi README.md
+
+rules :
+1. jangan buat file .log apapun
+2. buatkan dokumentasi singkat ("""...""") di setiap fungsi yang dibuat
+```
+
+**2. Analisis Konteks & Skema Preprocessing**
+```text
+lihat kembali file dataset.csv ini dan analisis preprocessing yang masih kurang dan sesuaikan dengan konteks dataset (sebagai pengetahuan dataset merupakan diambil dari hasil review sebuah produk di e commerce) , seperti :
+1. penanganan slang (perlu membaca dan analisis dataset.csv terlebih dahulu)
+2. lemmitazion
+3. stopword
+4. stemming
+
+jika, 4 proses diatas tidak di perlukan untuk konteks dataset yang ada jangan di masukkan ke dalam preprocessing dan perbarui README.md 
+```
+
+**3. Integrasi Kamus Bahasa Slang**
+```text
+1. berikut dict slang-indo.csv yang berisi 2 kolom slang dan formal yang didapatkan dari hungging face
+2. cocokkan dengan dataset.csv dan jadikan sebagai slang_dict
+```
+
+**4. Finalisasi Standar Reproduksi Kode**
+```text
+perbarui README.md dan buat requirements.txt yang berisi setiap packages yang perlu di install oleh siapa saja yang ingin mencoba pipeline ini
+```
+</details>
+
+---
+<div align="center">
+<i>Terima Kasih! Jika Anda bagian dari tim dan ingin berkontribusi, mohon periksa file <code>CONTRIBUTING.md</code>.</i>
+</div>
