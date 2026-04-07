@@ -1,6 +1,6 @@
 <div align="center">
 
-# 📊 E-Commerce Sentiment Analysis Pipeline
+# E-Commerce Sentiment Analysis Pipeline
 **Sistem Klasifikasi Teks Berbasis Machine Learning dengan PyCaret**
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
@@ -12,7 +12,7 @@
 
 ---
 
-## 🎯 Tentang Proyek
+## Tentang Proyek
 
 Proyek ini adalah implementasi sistem **Natural Language Processing (NLP)** yang dirancang khusus untuk menganalisis sentimen pengguna (Ulasan e-Commerce). Pipeline ini mengotomatiskan serangkaian proses mulai dari *Data Preprocessing* tingkat lanjut hingga *Model Training & Evaluation* menggunakan ekosistem terpadu **PyCaret 3.x**.
 
@@ -92,7 +92,7 @@ clf.evaluate_model()
 
 ---
 
-## 🤖 Pemanfaatan AI Prompting (Asisten Pengembangan)
+## Pemanfaatan AI Prompting (Asisten Pengembangan)
 
 Selama iterasi *Pair-Programming* pengembangan modul proyek ini, kami menggunakan **Gemini 3.1 Pro (High) AI agents** sebagai instrumen bantuan pembantu penyusunan kode. Berikut adalah histori *prompt* mentah (*Raw Prompts*) yang merepresentasikan arahan strategis arsitektur kami:
 

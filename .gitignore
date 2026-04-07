@@ -1,2 +1,9 @@
 .env
-__pycache__ 
+__pycache__
+logs.log
+*.pkl
+*.log
+model_pycaret.pkl
+model.pkl
+pipeline.pkl
+ 
