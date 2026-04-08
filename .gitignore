@@ -1,9 +1,4 @@
 .env
-__pycache__
-logs.log
-*.pkl
+__pycache__ 
 *.log
-model_pycaret.pkl
-model.pkl
-pipeline.pkl
- 
+README (1).md

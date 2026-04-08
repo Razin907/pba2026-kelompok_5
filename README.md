@@ -3,8 +3,8 @@ title: E Commerce Sentiment Analysis
 emoji: 🛍️
 colorFrom: blue
 colorTo: green
-sdk: streamlit
-sdk_version: 1.32.2
+sdk: gradio
+sdk_version: 4.19.0
 app_file: app/ml_demo/app.py
 pinned: false
 ---
