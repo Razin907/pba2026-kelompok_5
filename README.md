@@ -146,10 +146,10 @@ clf.evaluate_model()
 
 ## Deployment
 
-Two interactive demos will be deployed using **Hugging Face Spaces**:
+Two [interactive demos will be deployed using **Hugging Face Spaces**:
 
 * **Machine Learning Model (PyCaret)**
-  *(link will be added later)*
+  [deploy di hungging face](https://huggingface.co/spaces/razin-hafid/E-Commerce_Sentiment_Analysis)
 
 * **Deep Learning Model (PyTorch)**
   *(link will be added later)*
