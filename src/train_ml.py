@@ -1,5 +1,5 @@
-from preprocessing import PreprocessingPipeline
-from klasifikasi import SentimentClassifier
+from src.preprocessing import PreprocessingPipeline
+from src.utils import SentimentClassifier
 
 if __name__ == "__main__":
     print("="*50)
@@ -8,8 +8,8 @@ if __name__ == "__main__":
     
     # 1. Preprocessing
     print("\n[Tahap 1] Preprocessing Data...")
-    preprocessor = PreprocessingPipeline(text_col='review_text', target_col='sentiment', slang_dict='slang-indo.csv')
-    df_clean = preprocessor.fit_transform('dataset.csv')
+    preprocessor = PreprocessingPipeline(text_col='review_text', target_col='sentiment', slang_dict='data/raw/slang-indo.csv')
+    df_clean = preprocessor.fit_transform('data/raw/dataset.csv', save_cleaned=True)
     print("Sampel Data Tersimpan:")
     print(df_clean[['sentiment']].head(3))  # review_text diubah menjadi token TF-IDF
 
@@ -29,6 +29,12 @@ if __name__ == "__main__":
     print("\n[Tahap 4] Mengevaluasi Performa Model...")
     hasil_evaluasi = classifier.score()
     print(hasil_evaluasi)
+    
+    # 5. Menyimpan Pipeline dan Model Final
+    print("\n[Tahap 5] Menyimpan Pipeline dan Model ke Format Pickle...")
+    preprocessor.save("models/pipeline.pkl")
+    classifier.finalize()
+    classifier.save("models/model.pkl")
     
     print("\nPIPELINE SELESAI")
     print("="*50)

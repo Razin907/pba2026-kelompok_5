@@ -3,3 +3,4 @@ pycaret
 scikit-learn
 nltk
 numpy
+streamlit

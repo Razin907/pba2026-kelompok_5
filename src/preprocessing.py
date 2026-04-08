@@ -309,6 +309,7 @@ class PreprocessingPipeline:
         self,
         source: Union[str, Path, pd.DataFrame],
         save_cleaned: bool = False,
+        cleaned_path: Union[str, Path] = "data/processed/cleaned_text.csv"
     ) -> pd.DataFrame:
         """Fit pipeline dan transform data sekaligus."""
         df = self._load(source)
@@ -318,9 +319,9 @@ class PreprocessingPipeline:
 
         if save_cleaned:
             pd.DataFrame({"clean_text": cleaned, self.target_col: labels}).to_csv(
-                "cleaned_text.csv", index=False
+                cleaned_path, index=False
             )
-            logger.info("Teks bersih disimpan ke cleaned_text.csv")
+            logger.info("Teks bersih disimpan ke %s", cleaned_path)
 
         X_df = self.vectorizer.fit_transform(cleaned)
         X_df[self.target_col] = labels.reset_index(drop=True)

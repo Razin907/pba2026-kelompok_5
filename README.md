@@ -1,6 +1,17 @@
+---
+title: E Commerce Sentiment Analysis
+emoji: 🛍️
+colorFrom: blue
+colorTo: green
+sdk: streamlit
+sdk_version: 1.32.2
+app_file: app/ml_demo/app.py
+pinned: false
+---
+
 <div align="center">
 
-# E-Commerce Sentiment Analysis Pipeline
+# E-Commerce Sentiment Analysis
 **Sistem Klasifikasi Teks Berbasis Machine Learning dengan PyCaret**
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
@@ -12,32 +23,73 @@
 
 ---
 
-## Tentang Proyek
+## Project Description
 
 Proyek ini adalah implementasi sistem **Natural Language Processing (NLP)** yang dirancang khusus untuk menganalisis sentimen pengguna (Ulasan e-Commerce). Pipeline ini mengotomatiskan serangkaian proses mulai dari *Data Preprocessing* tingkat lanjut hingga *Model Training & Evaluation* menggunakan ekosistem terpadu **PyCaret 3.x**.
 
+## Dataset
+
+Dataset Link:
 Sistem ini mengekstraksi dataset ulasan produk dari Hugging Face ([siRendy/dataset-klasifikasi-sentimen-ulasan-produk](https://huggingface.co/datasets/siRendy/dataset-klasifikasi-sentimen-ulasan-produk)) dan memprosesnya secara cepat tanpa mengonsumsi algoritma komputasi berat.
 
-### Tim
-- **Razin Hafid Hamdi** (123450096)
-- **Ivana Margareth Hutabarat** (123410028)
-- **Hanna Gresia Sinaga** (123450038)
+### Team Members
+
+| Name                     | NIM       | GitHub Username |
+| ------------------------ | --------- | --------------- |
+| Razin Hafid Hamdi        | 123450096 | Razin907        |
+| Ivana Margareth Hutabarat| 123410028 | -               |
+| Hanna Gresia Sinaga      | 123450038 | -               |
 
 
 ---
 
-## Arsitektur Pipeline
+## Pipeline Architecture
 
-Proyek ini disusun dalam pola *Object-Oriented Programming (OOP)* agar mudah digunakan ulang.
+Proyek ini disusun dalam pola *Object-Oriented Programming (OOP)* agar modul-modul intinya mudah digunakan ulang.
 
 | Modul Utama | Tanggung Jawab (Fungsi Kelas) |
 | --- | --- |
 | 🧹 `preprocessing.py` | Berisi kelas `PreprocessingPipeline`. Mengelola pembersihan teks (*TextPreprocessor*), normalisasi slang Indonesia via `slang-indo.csv`, dan ekstraksi fitur berbasis `TFIDFVectorizer` (N-gram support). |
-| 🧠 `klasifikasi.py` | Berisi kelas `SentimentClassifier`. Bertindak sebagai _Wrapper_ library PyCaret. Bertanggung jawab mengatur `setup()` environment, perbandingan model (`compare`), training (`train`), dan evaluasi metrik (`score`). |
+| 🧠 `utils.py` | Berisi kelas `SentimentClassifier` dengan kapabilitas _Wrapper_ library PyCaret. Bertanggung jawab mengatur `setup()`, fitur komparasi algoritma (`compare`), serta eval dan auto-tuning. |
+| 🚀 `train_ml.py` | Skrip master ekseskusi (sebelumnya `main.py`). Skrip ini yang akan dieksekusi terminal untuk menggerakan seluruh pipeline ML secara sekuensial sampai mengekspor format `.pkl` model. |
 
 ---
 
-## Panduan Instalasi
+## Repository Structure
+
+```text
+pba2026-kelompok_5 
+│
+├── data
+│   ├── raw
+│   └── processed
+│
+├── notebooks
+│   ├── 01_eda.ipynb
+│   ├── 02_preprocessing.ipynb
+│   ├── 03_pycaret_model.ipynb
+│   └── 04_deep_learning.ipynb
+│
+├── src
+│   ├── preprocessing.py
+│   ├── train_ml.py
+│   ├── train_dl.py
+│   └── utils.py
+│
+├── models
+│
+├── app
+│   ├── ml_demo
+│   └── dl_demo
+│
+├── paper
+│
+└── README.md
+```
+
+---
+
+## Quick Installation
 
 Kami sangat menyarankan Anda menjalankannya pada *Virtual Environment* yang terisolasi.
 
@@ -89,6 +141,18 @@ model_cepat = clf.train_model('lr')
 # 3. Evaluasi
 clf.evaluate_model()
 ```
+
+---
+
+## Deployment
+
+Two interactive demos will be deployed using **Hugging Face Spaces**:
+
+* **Machine Learning Model (PyCaret)**
+  *(link will be added later)*
+
+* **Deep Learning Model (PyTorch)**
+  *(link will be added later)*
 
 ---
 
