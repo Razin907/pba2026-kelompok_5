@@ -1,15 +1,28 @@
 import gradio as gr
 import pandas as pd
+import os
+import sys
+
+# Tambahkan root direktori ke sys.path agar modul 'src' bisa ditemukan oleh pickle
+current_dir = os.path.dirname(os.path.abspath(__file__))
+root_dir = os.path.abspath(os.path.join(current_dir, "../../"))
+if root_dir not in sys.path:
+    sys.path.insert(0, root_dir)
+
 from src.preprocessing import PreprocessingPipeline
 from src.utils import SentimentClassifier
-import os
 
 # --- Load Model & Pipeline ---
 def load_system():
     try:
-        # Pipeline dan Classifier dibaca dari direktori "models/" sesuai pola deployment
-        prep = PreprocessingPipeline.load("models/pipeline.pkl")
-        clf = SentimentClassifier.load("models/model.pkl")
+        # Gunakan path absolut agar tidak bingung saat berjalan di server Hugging Face
+        pipeline_path = os.path.join(root_dir, "models", "pipeline.pkl")
+        # Catatan: SentimentClassifier.load mungkin mengharapkan path tanpa ekstensi jika menggunakan pycaret
+        # namun jika ia menggunakan joblib.load, path lengkap diperlukan.
+        model_path = os.path.join(root_dir, "models", "model.pkl")
+        
+        prep = PreprocessingPipeline.load(pipeline_path)
+        clf = SentimentClassifier.load(model_path)
         return prep, clf
     except Exception as e:
         print(f"Error memuat model: {e}")
