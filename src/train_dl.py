@@ -236,3 +236,304 @@ class BiLSTMAttention(nn.Module):
     num_classes : Jumlah kelas output
     dropout     : Dropout rate
     """
+
+    def __init__(
+        self,
+        vocab_size:  int   = 30_000,
+        embed_dim:   int   = 128,
+        hidden_dim1: int   = 256,
+        hidden_dim2: int   = 128,
+        num_classes: int   = 2,
+        dropout:     float = 0.3,
+    ) -> None:
+        super().__init__()
+
+
+        # Embedding layer (padding_idx=0 agar <PAD> tidak ikut gradient)
+        self.embedding = nn.Embedding(vocab_size, embed_dim, padding_idx=0)
+
+
+        # BiLSTM layer 1
+        self.lstm1 = nn.LSTM(
+            input_size=embed_dim,
+            hidden_size=hidden_dim1,
+            num_layers=1,
+            batch_first=True,
+            bidirectional=True,
+            dropout=0.0,   # dropout dikelola manual di luar LSTM
+        )
+
+
+        # BiLSTM layer 2
+        self.lstm2 = nn.LSTM(
+            input_size=hidden_dim1 * 2,
+            hidden_size=hidden_dim2,
+            num_layers=1,
+            batch_first=True,
+            bidirectional=True,
+            dropout=0.0,
+        )
+
+
+        # Attention layer — belajar bobot kepentingan tiap posisi
+        self.attention = nn.Linear(hidden_dim2 * 2, 1, bias=True)
+
+
+        self.dropout = nn.Dropout(dropout)
+
+
+        # Fully Connected classifier
+        self.fc = nn.Sequential(
+            nn.Linear(hidden_dim2 * 2, 64),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(64, num_classes),
+        )
+
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass.
+
+
+        Parameters
+        ----------
+        x : torch.Tensor — shape (batch, seq_len) berisi token IDs
+
+
+        Returns
+        -------
+        torch.Tensor — shape (batch, num_classes) logits
+        """
+        # Embedding + dropout
+        emb = self.dropout(self.embedding(x))        # (B, L, E)
+
+
+        # BiLSTM layer 1
+        out1, _ = self.lstm1(emb)                    # (B, L, 2*H1)
+        out1    = self.dropout(out1)
+
+
+        # BiLSTM layer 2
+        out2, _ = self.lstm2(out1)                   # (B, L, 2*H2)
+        out2    = self.dropout(out2)
+
+
+        # Attention: hitung skor tiap posisi, softmax, weighted sum
+        attn_scores  = self.attention(out2)          # (B, L, 1)
+        attn_weights = torch.softmax(attn_scores, dim=1)  # (B, L, 1)
+        context      = (attn_weights * out2).sum(dim=1)   # (B, 2*H2)
+
+
+        # Klasifikasi
+        logits = self.fc(self.dropout(context))      # (B, num_classes)
+        return logits
+
+
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 4. Utilitas Training
+# ══════════════════════════════════════════════════════════════════════════════
+def count_parameters(model: nn.Module) -> int:
+    """Hitung jumlah parameter trainable pada model."""
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+
+
+
+def set_seed(seed: int) -> None:
+    """Set random seed untuk reproducibility."""
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+
+
+
+def train_one_epoch(
+    model: nn.Module,
+    loader: DataLoader,
+    criterion: nn.Module,
+    optimizer: optim.Optimizer,
+    device: torch.device,
+) -> Tuple[float, float]:
+    """
+    Training satu epoch.
+
+
+    Returns
+    -------
+    (avg_loss, accuracy) pada data training epoch ini.
+    """
+    model.train()
+    total_loss, correct, total = 0.0, 0, 0
+
+
+    for X_batch, y_batch in loader:
+        X_batch = X_batch.to(device)
+        y_batch = y_batch.to(device)
+
+
+        optimizer.zero_grad()
+        logits = model(X_batch)
+        loss   = criterion(logits, y_batch)
+        loss.backward()
+
+
+        # Gradient clipping — mencegah exploding gradient
+        nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+
+
+        optimizer.step()
+
+
+        total_loss += loss.item() * len(y_batch)
+        preds       = logits.argmax(dim=1)
+        correct    += (preds == y_batch).sum().item()
+        total      += len(y_batch)
+
+
+    return total_loss / total, correct / total
+
+
+
+
+@torch.no_grad()
+def evaluate(
+    model: nn.Module,
+    loader: DataLoader,
+    criterion: nn.Module,
+    device: torch.device,
+) -> Tuple[float, float, np.ndarray, np.ndarray]:
+    """
+    Evaluasi model pada loader.
+
+
+    Returns
+    -------
+    (avg_loss, accuracy, all_preds, all_labels)
+    """
+    model.eval()
+    total_loss, correct, total = 0.0, 0, 0
+    all_preds, all_labels = [], []
+
+
+    for X_batch, y_batch in loader:
+        X_batch = X_batch.to(device)
+        y_batch = y_batch.to(device)
+
+
+        logits = model(X_batch)
+        loss   = criterion(logits, y_batch)
+
+
+        total_loss += loss.item() * len(y_batch)
+        preds       = logits.argmax(dim=1)
+        correct    += (preds == y_batch).sum().item()
+        total      += len(y_batch)
+
+
+        all_preds.extend(preds.cpu().numpy())
+        all_labels.extend(y_batch.cpu().numpy())
+
+
+    return (
+        total_loss / total,
+        correct / total,
+        np.array(all_preds),
+        np.array(all_labels),
+    )
+
+
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 5. Pipeline Training Utama
+# ══════════════════════════════════════════════════════════════════════════════
+def run_training(cfg: DLConfig) -> None:
+    """
+    Jalankan pipeline training BiLSTM + Attention end-to-end.
+
+
+    Alur:
+        Load data → Build vocab → Split data → Build DataLoader
+        → Build model → Training loop → Evaluasi final → Simpan artefak
+    """
+    set_seed(cfg.seed)
+
+
+    DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    logger.info("=" * 55)
+    logger.info("  PIPELINE DEEP LEARNING — BiLSTM + Attention")
+    logger.info("=" * 55)
+    logger.info("Device  : %s", DEVICE)
+    logger.info("Config  : %s", cfg)
+
+
+    save_dir = Path(cfg.model_save_dir)
+    save_dir.mkdir(parents=True, exist_ok=True)
+
+
+    # ── [1] Load data ────────────────────────────────────────────────────────
+    logger.info("\n[Tahap 1] Memuat data...")
+    df = pd.read_csv(cfg.data_path)
+    df["clean_text"] = df["clean_text"].fillna("").astype(str)
+
+
+    texts  = df["clean_text"].tolist()
+    labels = df["sentiment"].tolist()
+
+
+    logger.info("Jumlah sampel : %d", len(df))
+    logger.info("Distribusi    : %s", dict(Counter(labels)))
+
+
+    # ── [2] Build vocabulary ─────────────────────────────────────────────────
+    logger.info("\n[Tahap 2] Membangun vocabulary...")
+    vocab = Vocabulary(max_size=cfg.vocab_size).build(texts)
+    vocab.save(str(save_dir / "vocab_dl.json"))
+
+
+    # ── [3] Split data ───────────────────────────────────────────────────────
+    logger.info("\n[Tahap 3] Membagi data (train/val = %.0f%%/%.0f%%)...",
+                (1 - cfg.test_size) * 100, cfg.test_size * 100)
+
+
+    X_train, X_val, y_train, y_val = train_test_split(
+        texts, labels,
+        test_size=cfg.test_size,
+        random_state=cfg.seed,
+        stratify=labels,
+    )
+    logger.info("Train: %d | Val: %d", len(X_train), len(X_val))
+
+
+    # ── [4] DataLoader ───────────────────────────────────────────────────────
+    logger.info("\n[Tahap 4] Membuat DataLoader...")
+    train_ds = SentimentDataset(X_train, y_train, vocab, max_len=cfg.max_len)
+    val_ds   = SentimentDataset(X_val,   y_val,   vocab, max_len=cfg.max_len)
+
+
+    train_loader = DataLoader(train_ds, batch_size=cfg.batch_size, shuffle=True,  num_workers=0)
+    val_loader   = DataLoader(val_ds,   batch_size=cfg.batch_size * 2, shuffle=False, num_workers=0)
+
+
+    # ── [5] Build model ──────────────────────────────────────────────────────
+    logger.info("\n[Tahap 5] Membangun model BiLSTM + Attention...")
+    model = BiLSTMAttention(
+        vocab_size  = len(vocab),
+        embed_dim   = cfg.embed_dim,
+        hidden_dim1 = cfg.hidden_dim1,
+        hidden_dim2 = cfg.hidden_dim2,
+        num_classes = cfg.num_classes,
+        dropout     = cfg.dropout,
+    ).to(DEVICE)
+
+
+    n_params = count_parameters(model)
+    logger.info("Total parameter trainable : %s", f"{n_params:,}")
+    assert n_params <= 10_000_000, (
+        f"Model melebihi batas 10 juta parameter! ({n_params:,})"
+    )
