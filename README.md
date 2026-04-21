@@ -1,15 +1,3 @@
----
-title: E Commerce Sentiment Analysis
-emoji: 🛍️
-colorFrom: blue
-colorTo: green
-sdk: gradio
-python_version: 3.11
-sdk_version: 4.36.1
-app_file: app/ml_demo/app.py
-pinned: false
----
-
 <div align="center">
 
 # E-Commerce Sentiment Analysis

@@ -1,3 +1,15 @@
+---
+title: E Commerce Sentiment Analysis
+emoji: 🛍️
+colorFrom: blue
+colorTo: green
+sdk: gradio
+python_version: 3.11
+sdk_version: 4.36.1
+app_file: app/ml_demo/app.py
+pinned: false
+---
+
 # Machine Learning Demo (PyCaret)
 
 Folder ini berisi aplikasi antarmuka Gradio khusus untuk menjalankan model Traditional Machine Learning (melalui PyCaret pipeline) secara lokal di komputer Anda.
