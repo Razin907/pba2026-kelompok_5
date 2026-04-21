@@ -150,10 +150,10 @@ clf.evaluate_model()
 Two [interactive demos will be deployed using **Hugging Face Spaces**:
 
 * **Machine Learning Model (PyCaret)**
-  [deploy di hungging face](https://huggingface.co/spaces/razin-hafid/E-Commerce_Sentiment_Analysis)
+  - [Machine Learning](https://huggingface.co/spaces/razin-hafid/E-Commerce_Sentiment_Analysis)
 
 * **Deep Learning Model (PyTorch)**
-  *(link will be added later)*
+  - [Deep Learning](https://huggingface.co/spaces/razin-hafid/E-Commers-sentiment-analysis-DL)
 
 ---
 
