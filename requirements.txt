@@ -1,4 +1,15 @@
-pycaret==3.3.2
-huggingface-hub==0.22.2
-nltk
-torch
+# ---- Basis Data & Pemrosesan Teks ----
+pandas>=2.0.0
+numpy>=1.24.0
+nltk>=3.8.0
+
+# ---- Machine Learning (ML Klasik) ----
+pycaret>=3.3.0
+scikit-learn>=1.2.0
+
+# ---- Deep Learning (DL) ----
+torch>=2.0.0
+
+# ---- Interface / Demo (Opsional u/ running lokal) ----
+gradio>=4.0.0
+huggingface-hub>=0.22.0

@@ -1,0 +1,6 @@
+gradio>=4.0.0
+huggingface-hub==0.22.2
+torch
+scikit-learn
+numpy
+pandas

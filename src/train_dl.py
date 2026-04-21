@@ -537,3 +537,273 @@ def run_training(cfg: DLConfig) -> None:
     assert n_params <= 10_000_000, (
         f"Model melebihi batas 10 juta parameter! ({n_params:,})"
     )
+
+     # ── Optimizer & Scheduler ────────────────────────────────────────────────
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.parameters(), lr=cfg.lr)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, mode="min", factor=0.5, patience=2, verbose=True
+    )
+
+
+    # ── [6] Training loop ────────────────────────────────────────────────────
+    logger.info("\n[Tahap 6] Memulai training (%d epoch)...", cfg.num_epochs)
+    logger.info("-" * 75)
+    logger.info("%-6s %-12s %-12s %-12s %-12s %-10s",
+                "Epoch", "Train Loss", "Train Acc", "Val Loss", "Val Acc", "LR")
+    logger.info("-" * 75)
+
+
+    best_val_acc    = 0.0
+    best_val_f1     = 0.0
+    patience_counter = 0
+    history: List[dict] = []
+
+
+    for epoch in range(1, cfg.num_epochs + 1):
+        t_start = time.time()
+
+
+        # Training
+        train_loss, train_acc = train_one_epoch(
+            model, train_loader, criterion, optimizer, DEVICE
+        )
+
+
+        # Validasi
+        val_loss, val_acc, val_preds, val_labels = evaluate(
+            model, val_loader, criterion, DEVICE
+        )
+        val_f1 = f1_score(val_labels, val_preds, average="weighted")
+
+
+        scheduler.step(val_loss)
+        current_lr = optimizer.param_groups[0]["lr"]
+        elapsed    = time.time() - t_start
+
+
+        logger.info(
+            "%-6d %-12.4f %-12.4f %-12.4f %-12.4f %-10.6f (%.1fs)",
+            epoch, train_loss, train_acc, val_loss, val_acc, current_lr, elapsed
+        )
+
+
+        history.append({
+            "epoch": epoch,
+            "train_loss": round(train_loss, 4),
+            "train_acc":  round(train_acc, 4),
+            "val_loss":   round(val_loss, 4),
+            "val_acc":    round(val_acc, 4),
+            "val_f1":     round(val_f1, 4),
+        })
+
+
+        # Simpan model terbaik berdasarkan val_acc
+        if val_acc > best_val_acc:
+            best_val_acc = val_acc
+            best_val_f1  = val_f1
+            torch.save(model.state_dict(), str(save_dir / "bilstm_attention.pt"))
+            logger.info("  ✅ Model terbaik tersimpan (val_acc=%.4f, val_f1=%.4f)",
+                        best_val_acc, best_val_f1)
+            patience_counter = 0
+        else:
+            patience_counter += 1
+            if patience_counter >= cfg.patience:
+                logger.info(
+                    "Early stopping: tidak ada peningkatan selama %d epoch.",
+                    cfg.patience
+                )
+                break
+
+
+    # ── [7] Evaluasi final ───────────────────────────────────────────────────
+    logger.info("\n[Tahap 7] Evaluasi final pada validation set...")
+
+
+    # Load bobot terbaik
+    model.load_state_dict(
+        torch.load(str(save_dir / "bilstm_attention.pt"), map_location=DEVICE)
+    )
+
+
+    _, final_acc, final_preds, final_labels = evaluate(
+        model, val_loader, criterion, DEVICE
+    )
+
+
+    report = classification_report(
+        final_labels, final_preds,
+        target_names=["Negatif (0)", "Positif (1)"],
+        digits=4,
+    )
+    cm = confusion_matrix(final_labels, final_preds)
+
+
+    logger.info("\n%s", "=" * 55)
+    logger.info("  HASIL EVALUASI FINAL")
+    logger.info("=" * 55)
+    logger.info("Accuracy     : %.4f", final_acc)
+    logger.info("F1 (weighted): %.4f", best_val_f1)
+    logger.info("\nClassification Report:\n%s", report)
+    logger.info("Confusion Matrix:\n%s", cm)
+
+
+    # ── [8] Simpan artefak ───────────────────────────────────────────────────
+    logger.info("\n[Tahap 8] Menyimpan artefak...")
+
+
+    # Training history
+    history_path = str(save_dir / "bilstm_history.json")
+    with open(history_path, "w") as f:
+        json.dump(history, f, indent=2)
+
+
+    # Config
+    config_path = str(save_dir / "bilstm_config.json")
+    with open(config_path, "w") as f:
+        json.dump(cfg.__dict__, f, indent=2)
+
+
+    logger.info("Model       : %s", str(save_dir / "bilstm_attention.pt"))
+    logger.info("Vocabulary  : %s", str(save_dir / "vocab_dl.json"))
+    logger.info("History     : %s", history_path)
+    logger.info("Config      : %s", config_path)
+    logger.info("\n" + "=" * 55)
+    logger.info("  PIPELINE SELESAI ✅")
+    logger.info("  Best Val Accuracy : %.4f", best_val_acc)
+    logger.info("  Best Val F1       : %.4f", best_val_f1)
+    logger.info("  Total Parameter   : %s", f"{n_params:,}")
+    logger.info("=" * 55)
+
+
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 6. Inference Helper
+# ══════════════════════════════════════════════════════════════════════════════
+class DLPredictor:
+    """
+    Helper class untuk inference menggunakan model BiLSTM + Attention
+    yang sudah dilatih.
+
+
+    Penggunaan:
+        predictor = DLPredictor.load("models")
+        hasil = predictor.predict(["barang zonk", "pengiriman cepat"])
+        print(hasil)
+    """
+
+
+    LABEL_MAP = {0: "NEGATIF 👎", 1: "POSITIF 👍"}
+
+
+    def __init__(
+        self,
+        model: BiLSTMAttention,
+        vocab: Vocabulary,
+        cfg: DLConfig,
+        device: torch.device,
+    ) -> None:
+        self.model  = model
+        self.vocab  = vocab
+        self.cfg    = cfg
+        self.device = device
+
+
+    @classmethod
+    def load(cls, model_dir: str = "models") -> "DLPredictor":
+        """
+        Muat model, vocab, dan config dari direktori.
+
+
+        Parameters
+        ----------
+        model_dir : Direktori tempat artefak disimpan.
+        """
+        mdir = Path(model_dir)
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+        # Load config
+        with open(mdir / "bilstm_config.json") as f:
+            cfg_dict = json.load(f)
+        cfg = DLConfig(**cfg_dict)
+
+
+        # Load vocabulary
+        vocab = Vocabulary.load(str(mdir / "vocab_dl.json"))
+
+
+        # Load model
+        model = BiLSTMAttention(
+            vocab_size  = len(vocab),
+            embed_dim   = cfg.embed_dim,
+            hidden_dim1 = cfg.hidden_dim1,
+            hidden_dim2 = cfg.hidden_dim2,
+            num_classes = cfg.num_classes,
+            dropout     = cfg.dropout,
+        )
+        model.load_state_dict(
+            torch.load(str(mdir / "bilstm_attention.pt"), map_location=device)
+        )
+        model.to(device).eval()
+
+
+        logger.info("DLPredictor siap. Device: %s | Vocab: %d token", device, len(vocab))
+        return cls(model, vocab, cfg, device)
+
+
+    @torch.no_grad()
+    def predict(self, texts: List[str]) -> pd.DataFrame:
+        """
+        Prediksi sentimen dari list teks mentah.
+
+
+        Parameters
+        ----------
+        texts : List of str — teks yang ingin diprediksi
+
+
+        Returns
+        -------
+        pd.DataFrame dengan kolom:
+            - teks           : input asli
+            - label          : 0 (Negatif) atau 1 (Positif)
+            - sentimen       : label teks (POSITIF / NEGATIF)
+            - prob_negatif   : probabilitas kelas 0
+            - prob_positif   : probabilitas kelas 1
+        """
+        if isinstance(texts, str):
+            texts = [texts]
+
+
+        # Encode & buat tensor
+        ids = torch.tensor(
+            [self.vocab.encode(t, self.cfg.max_len) for t in texts],
+            dtype=torch.long,
+        ).to(self.device)
+
+
+        # Forward pass
+        logits = self.model(ids)
+        probs  = torch.softmax(logits, dim=1).cpu().numpy()
+        preds  = probs.argmax(axis=1)
+
+
+        return pd.DataFrame({
+            "teks":         texts,
+            "label":        preds,
+            "sentimen":     [self.LABEL_MAP[p] for p in preds],
+            "prob_negatif": probs[:, 0].round(4),
+            "prob_positif": probs[:, 1].round(4),
+        })
+
+
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Entry Point
+# ══════════════════════════════════════════════════════════════════════════════
+if __name__ == "__main__":
+    cfg = DLConfig()
+    run_training(cfg)
