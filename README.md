@@ -26,7 +26,7 @@ Sistem ini mengekstraksi dataset ulasan produk dari Hugging Face ([siRendy/datas
 | Name                     | NIM       | GitHub Username |
 | ------------------------ | --------- | --------------- |
 | Razin Hafid Hamdi        | 123450096 | Razin907        |
-| Ivana Margareth Hutabarat| 123410028 | -               |
+| Ivana Margareth Hutabarat| 123410028 | ivanamargareth  |
 | Hanna Gresia Sinaga      | 123450038 | -               |
 
 
