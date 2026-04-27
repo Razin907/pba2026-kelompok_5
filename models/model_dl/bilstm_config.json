@@ -1,0 +1,19 @@
+{
+  "data_path": "/kaggle/input/datasets/razinhafid/sentiment-cleaned/cleaned_text.csv",
+  "model_save_dir": "/kaggle/working/",
+  "lr": 0.003814,
+  "dropout": 0.4483,
+  "weight_decay": 0.00107,
+  "label_smoothing": 7.805e-05,
+  "embed_dim": 64,
+  "hidden_dim1": 128,
+  "hidden_dim2": 128,
+  "batch_size": 128,
+  "vocab_size": 30000,
+  "max_len": 128,
+  "num_classes": 2,
+  "num_epochs": 30,
+  "patience": 5,
+  "test_size": 0.2,
+  "seed": 42
+}
