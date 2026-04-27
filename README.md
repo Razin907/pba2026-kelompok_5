@@ -148,7 +148,7 @@ pip install -r requirements.txt
 
 ### 🤖 Machine Learning Pipeline
 
-Integrasi Pipeline Preprocessing dan Training kini dapat dilakukan hanya dengan beberapa baris kode (seperti tertera pada file `main.py`):
+Integrasi Pipeline Preprocessing dan Training kini dapat dilakukan hanya dengan beberapa baris kode (seperti tertera pada file `train_ml.py`):
 
 ```python
 from Preprocessing import DataPreprocessor
