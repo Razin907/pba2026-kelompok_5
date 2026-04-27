@@ -67,33 +67,40 @@ class DLConfig:
     hidden_dim2    : Hidden unit BiLSTM layer 2 (tiap arah)
     num_classes    : Jumlah kelas (2 = biner: positif/negatif)
     dropout        : Dropout rate
+    weight_decay   : L2 regularisasi (AdamW)
+    label_smoothing: Smoothing pada CrossEntropyLoss (0 = off)
     batch_size     : Ukuran batch training
     num_epochs     : Jumlah epoch maksimum
     lr             : Learning rate awal
     patience       : Early stopping patience (epoch)
     seed           : Random seed untuk reproducibility
     test_size      : Proporsi data validasi
+
+    Catatan: hyperparameter dioptimalkan menggunakan Optuna TPE
+    (Trial #19 — Val Loss: 0.0886, Val Acc: 0.9676)
     """
 
     data_path: str      = "data/processed/cleaned_text.csv"
     model_save_dir: str = "models"
 
-    # Arsitektur model
+    # Arsitektur model — Optuna best
     vocab_size:  int   = 30_000
     max_len:     int   = 128
-    embed_dim:   int   = 128
-    hidden_dim1: int   = 256
+    embed_dim:   int   = 64         # Optuna: 64 (sebelumnya 128)
+    hidden_dim1: int   = 128        # Optuna: 128 (sebelumnya 256)
     hidden_dim2: int   = 128
     num_classes: int   = 2
-    dropout:     float = 0.3
+    dropout:     float = 0.4483     # Optuna: 0.4483 (sebelumnya 0.3)
 
-    # Training
-    batch_size:  int   = 64
-    num_epochs:  int   = 15
-    lr:          float = 1e-3
-    patience:    int   = 3
-    test_size:   float = 0.2
-    seed:        int   = 42
+    # Training — Optuna best
+    batch_size:       int   = 128       # Optuna: 128 (sebelumnya 64)
+    num_epochs:       int   = 30        # dinaikkan karena lr lebih besar
+    lr:               float = 0.003814  # Optuna: 0.003814 (sebelumnya 1e-3)
+    weight_decay:     float = 0.001070  # Optuna: L2 via AdamW
+    label_smoothing:  float = 7.805e-05 # Optuna: ≈ 0 (hampir tanpa smoothing)
+    patience:         int   = 5         # dinaikkan dari 3
+    test_size:        float = 0.2
+    seed:             int   = 42
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -516,8 +523,8 @@ def run_training(cfg: DLConfig) -> None:
     val_ds   = SentimentDataset(X_val,   y_val,   vocab, max_len=cfg.max_len)
 
 
-    train_loader = DataLoader(train_ds, batch_size=cfg.batch_size, shuffle=True,  num_workers=0)
-    val_loader   = DataLoader(val_ds,   batch_size=cfg.batch_size * 2, shuffle=False, num_workers=0)
+    train_loader = DataLoader(train_ds, batch_size=cfg.batch_size,     shuffle=True,  num_workers=0, pin_memory=True)
+    val_loader   = DataLoader(val_ds,   batch_size=cfg.batch_size * 2, shuffle=False, num_workers=0, pin_memory=True)
 
 
     # ── [5] Build model ──────────────────────────────────────────────────────
@@ -538,12 +545,16 @@ def run_training(cfg: DLConfig) -> None:
         f"Model melebihi batas 10 juta parameter! ({n_params:,})"
     )
 
-     # ── Optimizer & Scheduler ────────────────────────────────────────────────
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=cfg.lr)
+    # ── Optimizer & Scheduler ─────────────────────────────────────────────────
+    # CrossEntropyLoss dengan label_smoothing (Optuna best ≈ 0)
+    criterion = nn.CrossEntropyLoss(label_smoothing=cfg.label_smoothing)
+    # AdamW agar weight_decay bekerja benar (berbeda dari Adam)
+    optimizer = optim.AdamW(model.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay)
+    # verbose=True dihapus — tidak didukung PyTorch >= 2.2 (menyebabkan TypeError)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode="min", factor=0.5, patience=2, verbose=True
+        optimizer, mode="min", factor=0.5, patience=2
     )
+    prev_lr = cfg.lr
 
 
     # ── [6] Training loop ────────────────────────────────────────────────────
@@ -554,8 +565,9 @@ def run_training(cfg: DLConfig) -> None:
     logger.info("-" * 75)
 
 
-    best_val_acc    = 0.0
-    best_val_f1     = 0.0
+    best_val_loss    = float("inf")  # early stopping berdasarkan val_loss
+    best_val_acc     = 0.0
+    best_val_f1      = 0.0
     patience_counter = 0
     history: List[dict] = []
 
@@ -581,6 +593,10 @@ def run_training(cfg: DLConfig) -> None:
         current_lr = optimizer.param_groups[0]["lr"]
         elapsed    = time.time() - t_start
 
+        # Log penurunan LR secara manual (pengganti verbose=True)
+        if current_lr < prev_lr:
+            logger.info("  ⬇️  LR diturunkan: %.6f → %.6f", prev_lr, current_lr)
+        prev_lr = current_lr
 
         logger.info(
             "%-6d %-12.4f %-12.4f %-12.4f %-12.4f %-10.6f (%.1fs)",
@@ -598,19 +614,20 @@ def run_training(cfg: DLConfig) -> None:
         })
 
 
-        # Simpan model terbaik berdasarkan val_acc
-        if val_acc > best_val_acc:
-            best_val_acc = val_acc
-            best_val_f1  = val_f1
+        # Simpan model terbaik berdasarkan val_loss (lebih sensitif dari val_acc)
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            best_val_acc  = val_acc
+            best_val_f1   = val_f1
             torch.save(model.state_dict(), str(save_dir / "bilstm_attention.pt"))
-            logger.info("  ✅ Model terbaik tersimpan (val_acc=%.4f, val_f1=%.4f)",
-                        best_val_acc, best_val_f1)
+            logger.info("  ✅ Model terbaik tersimpan (val_loss=%.4f, val_acc=%.4f, val_f1=%.4f)",
+                        best_val_loss, best_val_acc, best_val_f1)
             patience_counter = 0
         else:
             patience_counter += 1
             if patience_counter >= cfg.patience:
                 logger.info(
-                    "Early stopping: tidak ada peningkatan selama %d epoch.",
+                    "Early stopping: tidak ada peningkatan val_loss selama %d epoch.",
                     cfg.patience
                 )
                 break
