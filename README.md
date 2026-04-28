@@ -28,7 +28,7 @@ Sistem ini mengekstraksi dataset ulasan produk dari Hugging Face ([siRendy/datas
 | ------------------------ | --------- | --------------- |
 | Razin Hafid Hamdi        | 123450096 | Razin907        |
 | Ivana Margareth Hutabarat| 123410028 | ivanamargareth  |
-| Hanna Gresia Sinaga      | 123450038 | -               |
+| Hanna Gresia Sinaga      | 123450038 | hanna123450038-byte |
 
 
 ---
