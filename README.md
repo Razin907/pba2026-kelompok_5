@@ -140,7 +140,7 @@ pip install -r requirements.txt
 ```
 
 > [!NOTE]
-> Untuk menjalankan **pipeline Deep Learning** (`04_deep_learning.ipynb`), disarankan menggunakan **Kaggle Notebook** dengan GPU T4 aktif. Notebook mendeteksi environment secara otomatis (`IS_KAGGLE`). Pastikan file `cleaned_text.csv` sudah diunggah sebagai Kaggle Dataset sebelum eksekusi.
+> Untuk menjalankan **pipeline Deep Learning** (`04_deep_learning.ipynb`), disarankan menggunakan **Kaggle Notebook** dengan GPU yang sudah aktif. Notebook mendeteksi environment secara otomatis (`IS_KAGGLE`). Pastikan file `cleaned_text.csv` sudah diunggah sebagai Kaggle Dataset sebelum eksekusi.
 
 ---
 
