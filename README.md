@@ -208,6 +208,9 @@ Two [interactive demos will be deployed using **Hugging Face Spaces**:
 
 * **Deep Learning Model (PyTorch)**
   - [Deep Learning](https://huggingface.co/spaces/razin-hafid/E-Commers-sentiment-analysis-DL)
+ 
+* **Our Paper**
+  - [Paper](https://arxiv.org/pdf/2604.25452)
 
 ---
 
